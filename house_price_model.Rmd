@@ -1,0 +1,117 @@
+---
+title: "Boston House Price Predicton Model
+-By Satyam Sharma(055)"
+output: html_notebook
+---
+
+```{r}
+#Load libraries
+install.packages(c("ggplot2", "corrplot", "randomForest"))
+
+library(ggplot2)
+library(corrplot)
+library(randomForest)
+```
+
+
+```{r}
+#Load dataset
+data <- read.table("C:\\Users\\Dell\\Downloads\\housing.csv", header = FALSE)
+#fix columns
+colnames(data) <- c(
+  "CRIM","ZN","INDUS","CHAS","NOX","RM","AGE",
+  "DIS","RAD","TAX","PTRATIO","B","LSTAT","MEDV"
+)
+dim(data)
+head(data)
+```
+
+
+```{r}
+#Basic data check
+str(data)
+summary(data)
+dim(data)
+```
+```{r}
+#Missing values column-wise
+colSums(is.na(data))
+```
+
+
+```{r}
+#Scatter plot (Rooms vs Price)
+ggplot(data, aes(x = RM, y = MEDV)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", color = "red") +
+  ggtitle("Rooms vs Price")
+```
+```{r}
+#Histogram (Price distribution)
+ggplot(data, aes(x = MEDV)) +
+  geom_histogram(fill = "green", bins = 30) +
+  ggtitle("Price Distribution")
+```
+
+
+```{r}
+#Correlation heatmap
+cor_matrix <- cor(data)
+corrplot(cor_matrix, method = "color")
+```
+
+```{r}
+#Split data (Train/Test)
+set.seed(123)
+
+index <- sample(1:nrow(data), 0.8*nrow(data))
+
+train <- data[index, ]
+test <- data[-index, ]
+```
+
+```{r}
+#Build Model (Linear Regression)
+model <- lm(MEDV ~ ., data = train)
+summary(model)
+```
+
+```{r}
+#Predictions
+predictions <- predict(model, newdata = test)
+```
+```{r}
+#Model Evaluation (RMSE)
+rmse <- sqrt(mean((test$MEDV - predictions)^2))
+rmse
+```
+
+```{r}
+#Actual vs Predicted
+plot(test$MEDV, predictions,
+     xlab = "Actual",
+     ylab = "Predicted",
+     main = "Actual vs Predicted")
+
+abline(0, 1, col = "red")
+
+```
+```{r}
+#Residual plot
+plot(predictions, test$MEDV - predictions,
+     xlab = "Predicted",
+     ylab = "Residuals",
+     main = "Residual Plot")
+
+abline(h = 0, col = "red")
+```
+```{r}
+#Conclusion (House Price Prediction Model)
+
+cat('This project successfully developed a house price prediction model using multiple linear regression on the Boston housing dataset. The analysis shows that number of rooms (RM) has the strongest positive impact on price, while factors like LSTAT (lower status population), PTRATIO (education quality), and NOX (pollution) negatively affect house values.
+
+The model achieved an R² of 0.744, meaning it explains about 74% of the variation in house prices, with an RMSE of ~4.87, indicating reasonably accurate predictions. Visualizations such as scatter plots, heatmaps, and residual plots confirmed meaningful relationships and acceptable model performance.
+
+Overall, the model is effective for predicting house prices and understanding key influencing factors. However, accuracy can be further improved using advanced techniques like Random Forest or XGBoost, especially for handling non-linear relationships.')
+```
+
